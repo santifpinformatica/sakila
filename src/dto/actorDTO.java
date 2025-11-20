@@ -1,16 +1,18 @@
 package dto;
 
-public class actorDTO {
+public class ActorDTO {
     private int actorId;
     private String firstName;
     private String lastName;
     
+    public ActorDTO() {}
     
-    public actorDTO(int actorId, String firstName, String lastName) {
+    public ActorDTO(int actorId, String firstName, String lastName) {
         this.actorId = actorId;
         this.firstName = firstName;
         this.lastName = lastName;
     }
+
 
     public int getActorId() {
         return actorId;
@@ -29,6 +31,11 @@ public class actorDTO {
     }
     public void setLastName(String lastName) {
         this.lastName = lastName;
+    }
+
+    @Override
+    public String toString() {
+        return "ActorDTO [actorId=" + actorId + ", firstName=" + firstName + ", lastName=" + lastName + "]";
     }
     
 }

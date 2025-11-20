@@ -8,7 +8,7 @@ public class ConnectionFactory {
 
     private static final String URL = "jdbc:mysql://localhost:3306/sakila";
     private static final String USER = "root";
-    private static final String PASS = "1234";
+    private static final String PASS = "";
 
     // Evita que alguien instancie esta clase
     private ConnectionFactory() {}
