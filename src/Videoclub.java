@@ -14,18 +14,19 @@ public class Videoclub {
 
         int opcion = 0;
 
-        while (opcion != 6) {
+        while (opcion != 7) {
             mostrarMenu();
             opcion = sc.nextInt();
-            sc.nextLine(); // Consumir salto de línea
-
+            sc.nextLine(); 
             switch (opcion) {
                 case 1 -> listarActores();
                 case 2 -> buscarActorPorId();
-                case 3 -> crearActor();
-                case 4 -> actualizarActor();
-                case 5 -> borrarActor();
-                case 6 -> System.out.println("Saliendo...");
+                case 3 -> buscarActorPorNombreOApellido();
+                case 4 -> crearActor();
+                case 5 -> actualizarActor();
+                case 6 -> borrarActor();
+  
+                case 7 -> System.out.println("Saliendo...");
                 default -> System.out.println("Opción no válida.");
             }
         }
@@ -37,10 +38,11 @@ public class Videoclub {
         System.out.println("\n--- Menú de Actores ---");
         System.out.println("1. Encontrar todos los actores");
         System.out.println("2. Buscar actor por ID");
-        System.out.println("3. Crear actor");
-        System.out.println("4. Actualizar actor");
-        System.out.println("5. Borrar actor");
-        System.out.println("6. Salir");
+        System.out.println("3. Buscar actor por nombre y apellidos");
+        System.out.println("4. Crear actor");
+        System.out.println("5. Actualizar actor");
+        System.out.println("6. Borrar actor");
+        System.out.println("7. Salir");
         System.out.print("Elige una opción: ");
     }
 
@@ -60,6 +62,19 @@ public class Videoclub {
             System.out.println(actor);
         } else {
             System.out.println("Actor no encontrado.");
+        }
+    }
+
+    public static void buscarActorPorNombreOApellido() {
+        System.out.print("Introduce nombre o apellido del actor: ");
+        String nombreOApellido = sc.nextLine();
+        List<ActorDTO> actores = actorDAO.findByNameOrLastName(nombreOApellido);
+        if (!actores.isEmpty()) {
+            for (ActorDTO actor : actores) {
+                System.out.println(actor);
+            }
+        } else {
+            System.out.println("No se encontraron actores con ese nombre o apellido.");
         }
     }
 
@@ -101,4 +116,6 @@ public class Videoclub {
         actorDAO.delete(id);
         System.out.println("Actor borrado si existía.");
     }
+
+
 }
