@@ -1,13 +1,18 @@
+import java.sql.Connection;
+import java.sql.SQLException;
 import java.util.List;
 import java.util.Scanner;
 
 import dao.ActorDAO;
+import dao.FilmActorDAO;
 import dto.ActorDTO;
+import factory.ConnectionFactory;
 
 public class Videoclub {
 
     private static final Scanner sc = new Scanner(System.in);
     private static final ActorDAO actorDAO = new ActorDAO();
+    private static final FilmActorDAO filmActorDAO = new FilmActorDAO();
 
     public static void main(String[] args) throws Exception {
 
@@ -47,9 +52,13 @@ public class Videoclub {
     }
 
     private static void listarActores() {
-        List<ActorDTO> actores = actorDAO.findAll();
-        for(ActorDTO actor : actores){
-            System.out.println(actor);
+        try (Connection conn = ConnectionFactory.getConnection()) {
+            List<ActorDTO> actores = actorDAO.findAll(conn);
+            for(ActorDTO actor : actores){
+                System.out.println(actor);
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -57,24 +66,32 @@ public class Videoclub {
         System.out.print("Introduce ID del actor: ");
         int id = sc.nextInt();
         sc.nextLine();
-        ActorDTO actor = actorDAO.findById(id);
-        if (actor != null) {
-            System.out.println(actor);
-        } else {
-            System.out.println("Actor no encontrado.");
+        try (Connection conn = ConnectionFactory.getConnection()) {
+            ActorDTO actor = actorDAO.findById(conn, id);
+            if (actor != null) {
+                System.out.println(actor);
+            } else {
+                System.out.println("Actor no encontrado.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
     public static void buscarActorPorNombreOApellido() {
         System.out.print("Introduce nombre o apellido del actor: ");
         String nombreOApellido = sc.nextLine();
-        List<ActorDTO> actores = actorDAO.findByNameOrLastName(nombreOApellido);
-        if (!actores.isEmpty()) {
-            for (ActorDTO actor : actores) {
-                System.out.println(actor);
+        try (Connection conn = ConnectionFactory.getConnection()) {
+            List<ActorDTO> actores = actorDAO.findByNameOrLastName(conn, nombreOApellido);
+            if (!actores.isEmpty()) {
+                for (ActorDTO actor : actores) {
+                    System.out.println(actor);
+                }
+            } else {
+                System.out.println("No se encontraron actores con ese nombre o apellido.");
             }
-        } else {
-            System.out.println("No se encontraron actores con ese nombre o apellido.");
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -86,26 +103,34 @@ public class Videoclub {
         ActorDTO nuevo = new ActorDTO();
         nuevo.setFirstName(nombre);
         nuevo.setLastName(apellido);
-        actorDAO.create(nuevo);
-        System.out.println("Actor creado con ID: " + nuevo.getActorId());
+        try (Connection conn = ConnectionFactory.getConnection()) {
+            actorDAO.create(conn, nuevo);
+            System.out.println("Actor creado con ID: " + nuevo.getActorId());
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
     private static void actualizarActor() {
         System.out.print("Introduce ID del actor a actualizar: ");
         int id = sc.nextInt();
         sc.nextLine();
-        ActorDTO actor = actorDAO.findById(id);
-        if (actor != null) {
-            System.out.print("Nuevo nombre (" + actor.getFirstName() + "): ");
-            String nombre = sc.nextLine();
-            System.out.print("Nuevo apellido (" + actor.getLastName() + "): ");
-            String apellido = sc.nextLine();
-            actor.setFirstName(nombre.isEmpty() ? actor.getFirstName() : nombre);
-            actor.setLastName(apellido.isEmpty() ? actor.getLastName() : apellido);
-            actorDAO.update(actor);
-            System.out.println("Actor actualizado.");
-        } else {
-            System.out.println("Actor no encontrado.");
+        try (Connection conn = ConnectionFactory.getConnection()) {
+            ActorDTO actor = actorDAO.findById(conn, id);
+            if (actor != null) {
+                System.out.print("Nuevo nombre (" + actor.getFirstName() + "): ");
+                String nombre = sc.nextLine();
+                System.out.print("Nuevo apellido (" + actor.getLastName() + "): ");
+                String apellido = sc.nextLine();
+                actor.setFirstName(nombre.isEmpty() ? actor.getFirstName() : nombre);
+                actor.setLastName(apellido.isEmpty() ? actor.getLastName() : apellido);
+                actorDAO.update(conn, actor);
+                System.out.println("Actor actualizado.");
+            } else {
+                System.out.println("Actor no encontrado.");
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
         }
     }
 
@@ -113,8 +138,20 @@ public class Videoclub {
         System.out.print("Introduce ID del actor a borrar: ");
         int id = sc.nextInt();
         sc.nextLine();
-        actorDAO.delete(id);
-        System.out.println("Actor borrado si existía.");
+        try (Connection conn = ConnectionFactory.getConnection()) {
+            conn.setAutoCommit(false);
+            try {
+                filmActorDAO.deleteByActorId(conn, id);
+                actorDAO.delete(conn, id);
+                conn.commit();
+                System.out.println("Actor borrado si existía.");
+            } catch (SQLException e) {
+                conn.rollback();
+                e.printStackTrace();
+            }
+        } catch (Exception e) {
+            e.printStackTrace();
+        }
     }
 
 
